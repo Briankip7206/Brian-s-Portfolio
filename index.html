@@ -1,0 +1,125 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <tittle>Personal Portfolio Website</tittle>
+        <link rel="Stylesheet" href="style.css">
+    </head>
+    <body>
+    <div id="header">
+        <div class="container">
+            <nav>
+                <img src="images/logo.jpg" class="logo">
+                <ul>
+                    <li><a href="#">Home</a> </li>
+                    <li><a href="#">About</a> </li>
+                    <li><a href="#">Services</a> </li>
+                    <li><a href="#">Portfolio</a> </li>
+                    <li><a href="#">Contact</a> </li>
+                </ul>
+            </nav>
+            <div class="header-text">
+                <p>Web Developer</p>
+                <h1>Hi, I am <span>Brian</span><br>  K</h1>
+            </div>
+        </div>
+    </div>
+   <!-----about---->
+    <div id="About">
+        <div class="container">
+            <div class="row">
+                <div class="about-col-1">
+                    <img src="images/snap.jpg">
+                </div>
+                <div class="about-col-2">
+                    <h1 class="sub-tittle">About Me</h1>
+                    <p>I am a passionate Computer Science graduate with hands-on experience in software development, technical support and tech consultancy.</p>
+                    <div class="tab-tittles">
+                        <p class="tab-links active-link"onclick="opentab('Skills')" >Skills</p>
+                        <p class="tab-links"onclick="opentab('Experience')">Experience</p>
+                        <p class="tab-links"onclick="opentab('Education')">Education</p>
+                    </div>
+                    <div class="tab-contents active-tab" id="Skills">
+                        <ul>
+                            <li><span>Web Development</span><br>Web/App Development</li>
+                            <li><span>App Development</span><br>Building Android/Ios apps</li>
+                            <li><span>UI/UX</span><br>Designing Web/App interfaces</li>
+                        </ul>
+                    </div>
+                    <div class="tab-contents" id="Experience">
+                        <Ul>
+                            <li><span>2026</span><br>Developed a Web App for a final year project</li>
+                            <li><span>2024-2025</span><br>Building Android/Ios apps for a personal project</li>
+                            <li><span>2023-2024</span><br>UI/UX Training From Freecodecamp</li>
+                        </Ul>
+                    </div>
+                    <div class="tab-contents" id="Education" >
+                        <ul>
+                            <li><span>2025</span><br>Frontend Development Course from Udemy</li>
+                            <li><span>2024</span><br>Meru University of Science and Technology</li>
+                            <li><span>2019</span><br>Kaplong Boys' High School</li>
+                        </ul>  
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-----services---->
+    <div id="Services">
+        <div class="container">
+            <h1 class="sub-tittle">My Services</h1>
+            <div class="services-list">
+                <div>
+                    <H2>Web Design</H2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo accusamus error incidunt ea? Nesciunt, necessitatibus earum veniam ex officia asperiores fugiat sunt quaerat amet provident veritatis voluptatum quasi, rerum perferendis.</p>
+                    <a href="=#">learn more</a>
+                </div>
+
+                <div>
+                    <H2>UI/UX</H2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo accusamus error incidunt ea? Nesciunt, necessitatibus earum veniam ex officia asperiores fugiat sunt quaerat amet provident veritatis voluptatum quasi, rerum perferendis.</p>
+                    <a href="=#">learn more</a>
+                </div>
+
+                <div>
+                    <H2>App Design</H2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo accusamus error incidunt ea? Nesciunt, necessitatibus earum veniam ex officia asperiores fugiat sunt quaerat amet provident veritatis voluptatum quasi, rerum perferendis.</p>
+                    <a href="=#">learn more</a>
+                </div>
+
+
+
+
+
+
+            </div>
+
+
+        </div> 
+
+        
+    </div>
+
+    <script>
+        var tablinks=document.getElementsByClassName("tab-links");
+        var tabcontents=document.getElementsByClassName("tab-contents");
+        function opentab(tabname){
+            for (tablink of tablinks){
+                tablink.classList.remove("active-link");
+            }
+            for (tabcontent of tabcontents){
+                tabcontent.classList.remove("active-tab");
+            }
+            event.currentTarget.classList.add("active-link");
+            document.getElementById(tabname).classList.add("active-tab")
+        }
+        
+
+
+
+
+    </script>
+</body>
+</html>
