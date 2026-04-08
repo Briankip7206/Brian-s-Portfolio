@@ -1,1 +1,1 @@
-This is my personal portfolio website designed to showcase my skills, projects and experience in Software Development, networking and technical support.
+This is my personal portfolio website designed to showcase my skills, projects and experience.The website features a responsive design to ensure a seamless experience across devices.
