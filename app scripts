@@ -1,0 +1,175 @@
+//==============================
+// CONFIGURATION
+//==============================
+
+const SHEET_NAME = "Sheet1";
+// Change this to your email
+const OWNER_EMAIL = "briomax149@gmail.com";
+
+const WEBSITE_NAME = "Brian's Portfolio";
+
+
+//==============================
+// RECEIVE FORM
+//==============================
+
+function doPost(e) {
+
+  try {
+
+    const sheet = SpreadsheetApp
+      .getActiveSpreadsheet()
+      .getSheetByName(SHEET_NAME);
+
+    const name = e.parameter.Name;
+    const email = e.parameter.Email;
+    const subject = e.parameter.Subject;
+    const message = e.parameter.Message;
+
+    // Save to Google Sheet
+
+    sheet.appendRow([
+
+      new Date(),
+
+      name,
+
+      email,
+
+      subject,
+
+      message
+
+    ]);
+
+
+
+    //==================================
+    // EMAIL TO YOU
+    //==================================
+
+    MailApp.sendEmail({
+
+      to: OWNER_EMAIL,
+
+      subject: "📩 New Portfolio Contact",
+
+      htmlBody:
+
+      `
+      <h2>New Contact Form Submission</h2>
+
+      <p><strong>Name:</strong> ${name}</p>
+
+      <p><strong>Email:</strong> ${email}</p>
+
+      <p><strong>Subject:</strong> ${subject}</p>
+
+      <p><strong>Message:</strong></p>
+
+      <p>${message}</p>
+
+      <hr>
+
+      <small>Submitted from your Portfolio Website</small>
+
+      `
+
+    });
+
+
+
+    //==================================
+    // THANK YOU EMAIL
+    //==================================
+
+    MailApp.sendEmail({
+
+      to: email,
+
+      subject: "Thank you for contacting Brian Cheruiyot",
+
+      htmlBody:
+
+      `
+      <h2>Hello ${name}, 👋</h2>
+
+      <p>
+
+      Thank you for contacting me through my portfolio website.
+
+      </p>
+
+      <p>
+
+      I have received your message and will respond as soon as possible.
+
+      </p>
+
+      <hr>
+
+      <strong>Summary of your message</strong>
+
+      <p><strong>Subject:</strong> ${subject}</p>
+
+      <p>${message}</p>
+
+      <br>
+
+      Best Regards,
+
+      <br><br>
+
+      <strong>Brian Cheruiyot</strong>
+
+      <br>
+
+      Software Developer
+
+      <br>
+
+      Nairobi, Kenya
+
+      `
+
+    });
+
+
+
+    return ContentService
+
+      .createTextOutput(
+
+        JSON.stringify({
+
+          status: "success"
+
+        })
+
+      )
+
+      .setMimeType(ContentService.MimeType.JSON);
+
+  }
+
+  catch(err){
+
+    return ContentService
+
+      .createTextOutput(
+
+        JSON.stringify({
+
+          status:"error",
+
+          message:err.toString()
+
+        })
+
+      )
+
+      .setMimeType(ContentService.MimeType.JSON);
+
+  }
+
+}
