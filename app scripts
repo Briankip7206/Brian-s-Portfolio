@@ -3,10 +3,18 @@
 //==============================
 
 const SHEET_NAME = "Sheet1";
+// Paste the ID from your Google Sheet's URL here:
+// https://docs.google.com/spreadsheets/d/  THIS_PART_HERE  /edit
+// Leave as "" ONLY if this script was created via Extensions > Apps Script
+// from inside the Sheet itself (a "bound" script).
+const SHEET_ID = "1uaG2QUq4Nt0pzWeowHQ1LBbbiTPPLYIopUz0SaEWQac";
 // Change this to your email
 const OWNER_EMAIL = "briomax149@gmail.com";
 
 const WEBSITE_NAME = "Brian's Portfolio";
+
+// Very basic email shape check — not exhaustive, just catches obvious junk
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
 //==============================
@@ -15,161 +23,146 @@ const WEBSITE_NAME = "Brian's Portfolio";
 
 function doPost(e) {
 
+  var lock;
+
   try {
 
-    const sheet = SpreadsheetApp
-      .getActiveSpreadsheet()
-      .getSheetByName(SHEET_NAME);
+    // Prevent two simultaneous submissions from racing on the same sheet.
+    // Getting/using the lock lives INSIDE the try block — if this fails for
+    // any reason, we still return valid JSON instead of an uncaught error
+    // page (which lacks CORS headers and breaks the client-side fetch).
+    lock = LockService.getScriptLock();
+    lock.waitLock(10000);
 
-    const name = e.parameter.Name;
-    const email = e.parameter.Email;
-    const subject = e.parameter.Subject;
-    const message = e.parameter.Message;
+    const name = (e.parameter.Name || "").trim();
+    const email = (e.parameter.Email || "").trim();
+    const subject = (e.parameter.Subject || "").trim();
+    const message = (e.parameter.Message || "").trim();
 
-    // Save to Google Sheet
+    // --- Validate required fields before doing anything else ---
+    if (!name || !email || !subject || !message) {
+      return jsonResponse("error", "Missing required field(s).");
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return jsonResponse("error", "Invalid email address.");
+    }
+
+    // --- Save to Google Sheet (this is the critical action) ---
+    const spreadsheet = SHEET_ID
+      ? SpreadsheetApp.openById(SHEET_ID)
+      : SpreadsheetApp.getActiveSpreadsheet();
+
+    if (!spreadsheet) {
+      return jsonResponse("error", "Could not open the spreadsheet — check SHEET_ID.");
+    }
+
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+    if (!sheet) {
+      return jsonResponse("error", `Sheet "${SHEET_NAME}" not found.`);
+    }
 
     sheet.appendRow([
-
       new Date(),
-
       name,
-
       email,
-
       subject,
-
       message
-
     ]);
 
+    // From this point on, the submission is already saved.
+    // Email failures below must NOT be reported back as a failed submission.
+    trySendNotificationEmails(name, email, subject, message);
+
+    return jsonResponse("success");
+
+  } catch (err) {
+
+    return jsonResponse("error", err.toString());
+
+  } finally {
+    if (lock) lock.releaseLock();
+  }
+}
 
 
-    //==================================
-    // EMAIL TO YOU
-    //==================================
+//==============================
+// EMAILS (best-effort, isolated from the save above)
+//==============================
 
+function trySendNotificationEmails(name, email, subject, message) {
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject);
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
+
+  // Notify the site owner
+  try {
     MailApp.sendEmail({
-
       to: OWNER_EMAIL,
-
       subject: "📩 New Portfolio Contact",
-
-      htmlBody:
-
+      htmlBody: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
+        <p><strong>Message:</strong></p>
+        <p>${safeMessage}</p>
+        <hr>
+        <small>Submitted from ${WEBSITE_NAME}</small>
       `
-      <h2>New Contact Form Submission</h2>
-
-      <p><strong>Name:</strong> ${name}</p>
-
-      <p><strong>Email:</strong> ${email}</p>
-
-      <p><strong>Subject:</strong> ${subject}</p>
-
-      <p><strong>Message:</strong></p>
-
-      <p>${message}</p>
-
-      <hr>
-
-      <small>Submitted from your Portfolio Website</small>
-
-      `
-
     });
+  } catch (err) {
+    // Log only — a failed notification email should never undo the saved submission
+    console.error("Owner notification email failed: " + err);
+  }
 
-
-
-    //==================================
-    // THANK YOU EMAIL
-    //==================================
-
+  // Thank-you email to the visitor
+  try {
     MailApp.sendEmail({
-
       to: email,
-
       subject: "Thank you for contacting Brian Cheruiyot",
-
-      htmlBody:
-
+      htmlBody: `
+        <h2>Hello ${safeName}, 👋</h2>
+        <p>Thank you for contacting me through my portfolio website.</p>
+        <p>I have received your message and will respond as soon as possible.</p>
+        <hr>
+        <strong>Summary of your message</strong>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
+        <p>${safeMessage}</p>
+        <br>
+        Best Regards,
+        <br><br>
+        <strong>Brian Cheruiyot</strong>
+        <br>
+        Software Developer
+        <br>
+        Nairobi, Kenya
       `
-      <h2>Hello ${name}, 👋</h2>
-
-      <p>
-
-      Thank you for contacting me through my portfolio website.
-
-      </p>
-
-      <p>
-
-      I have received your message and will respond as soon as possible.
-
-      </p>
-
-      <hr>
-
-      <strong>Summary of your message</strong>
-
-      <p><strong>Subject:</strong> ${subject}</p>
-
-      <p>${message}</p>
-
-      <br>
-
-      Best Regards,
-
-      <br><br>
-
-      <strong>Brian Cheruiyot</strong>
-
-      <br>
-
-      Software Developer
-
-      <br>
-
-      Nairobi, Kenya
-
-      `
-
     });
-
-
-
-    return ContentService
-
-      .createTextOutput(
-
-        JSON.stringify({
-
-          status: "success"
-
-        })
-
-      )
-
-      .setMimeType(ContentService.MimeType.JSON);
-
+  } catch (err) {
+    console.error("Thank-you email failed: " + err);
   }
+}
 
-  catch(err){
 
-    return ContentService
+//==============================
+// HELPERS
+//==============================
 
-      .createTextOutput(
+function jsonResponse(status, message) {
+  const payload = { status: status };
+  if (message) payload.message = message;
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
-        JSON.stringify({
-
-          status:"error",
-
-          message:err.toString()
-
-        })
-
-      )
-
-      .setMimeType(ContentService.MimeType.JSON);
-
-  }
-
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
